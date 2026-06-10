@@ -13,6 +13,7 @@ export default function App() {
   // Application State
   const [names, setNames] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('time-desc');
   const [isLoading, setIsLoading] = useState(true);
   
   // Modal State
@@ -97,11 +98,22 @@ export default function App() {
     setEditingName(null);
   };
 
-  // --- Filter Logic ---
+  // --- Filter & Sort Logic ---
 
   const filteredNames = names.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ).sort((a, b) => {
+    if (sortBy === 'time-desc') {
+      return Number(b.id) - Number(a.id);
+    } else if (sortBy === 'time-asc') {
+      return Number(a.id) - Number(b.id);
+    } else if (sortBy === 'alpha-asc') {
+      return a.name.localeCompare(b.name);
+    } else if (sortBy === 'alpha-desc') {
+      return b.name.localeCompare(a.name);
+    }
+    return 0;
+  });
 
   // --- Render Helpers ---
 
@@ -130,6 +142,37 @@ export default function App() {
 
       {/* Search Bar */}
       <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+
+      {/* Sort Options */}
+      <View style={styles.sortContainer}>
+        <TouchableOpacity 
+          style={[styles.sortChip, sortBy.startsWith('time') && styles.sortChipActive]}
+          onPress={() => setSortBy(sortBy === 'time-desc' ? 'time-asc' : 'time-desc')}
+        >
+          <MaterialIcons 
+            name={sortBy === 'time-asc' ? 'arrow-upward' : 'arrow-downward'} 
+            size={16} 
+            color={sortBy.startsWith('time') ? '#fff' : '#666'} 
+          />
+          <Text style={[styles.sortText, sortBy.startsWith('time') && styles.sortTextActive]}>
+            Time
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.sortChip, sortBy.startsWith('alpha') && styles.sortChipActive]}
+          onPress={() => setSortBy(sortBy === 'alpha-asc' ? 'alpha-desc' : 'alpha-asc')}
+        >
+          <MaterialIcons 
+            name={sortBy === 'alpha-desc' ? 'arrow-upward' : 'arrow-downward'} 
+            size={16} 
+            color={sortBy.startsWith('alpha') ? '#fff' : '#666'} 
+          />
+          <Text style={[styles.sortText, sortBy.startsWith('alpha') && styles.sortTextActive]}>
+            A-Z
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* List */}
       <FlatList
@@ -184,6 +227,32 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#8E8E93',
     marginTop: 4,
+  },
+  sortContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+  },
+  sortChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E5E5EA',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 10,
+  },
+  sortChipActive: {
+    backgroundColor: '#007AFF',
+  },
+  sortText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  sortTextActive: {
+    color: '#fff',
   },
   listContainer: {
     paddingBottom: 100, // Space for the FAB
